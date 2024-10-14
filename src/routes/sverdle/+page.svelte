@@ -8,14 +8,16 @@
 
 	export let form: ActionData;
 
+	$: ({ guesses, answers, maxGuesses, answer: answerRevealed, difficulty } = data);
+
 	/** Whether or not the user has won */
-	$: won = data.answers.at(-1) === 'xxxxx';
+	$: won = answers.at(-1) === 'xxxxx';
 
 	/** The index of the current guess */
-	$: i = won ? -1 : data.answers.length;
+	$: i = won ? -1 : answers.length;
 
 	/** The current guess */
-	$: currentGuess = data.guesses[i] || '';
+	$: currentGuess = guesses[i] || '';
 
 	/** Whether the current guess can be submitted */
 	$: submittable = currentGuess.length === 5;
@@ -36,8 +38,8 @@
 		classnames = {};
 		description = {};
 
-		data.answers.forEach((answer, i) => {
-			const guess = data.guesses[i];
+		answers.forEach((answer, i) => {
+			const guess = guesses[i];
 
 			for (let i = 0; i < 5; i += 1) {
 				const letter = guess[i];
@@ -106,14 +108,44 @@
 >
 	<a class="how-to-play" href="/sverdle/how-to-play">How to play</a>
 
+	<div class="difficulty-buttons">
+		<button
+			class="difficulty-button"
+			class:selected={difficulty === 'easy'}
+			formaction="?/setDifficulty"
+			name="difficulty"
+			value="easy"
+		>
+			Easy
+		</button>
+		<button
+			class="difficulty-button"
+			class:selected={difficulty === 'medium'}
+			formaction="?/setDifficulty"
+			name="difficulty"
+			value="medium"
+		>
+			Medium
+		</button>
+		<button
+			class="difficulty-button"
+			class:selected={difficulty === 'hard'}
+			formaction="?/setDifficulty"
+			name="difficulty"
+			value="hard"
+		>
+			Hard
+		</button>
+	</div>
+
 	<div class="grid" class:playing={!won} class:bad-guess={form?.badGuess}>
-		{#each Array.from(Array(6).keys()) as row (row)}
+		{#each Array.from(Array(maxGuesses).keys()) as row (row)}
 			{@const current = row === i}
 			<h2 class="visually-hidden">Row {row + 1}</h2>
 			<div class="row" class:current>
 				{#each Array.from(Array(5).keys()) as column (column)}
-					{@const guess = current ? currentGuess : data.guesses[row]}
-					{@const answer = data.answers[row]?.[column]}
+					{@const guess = current ? currentGuess : guesses[row]}
+					{@const answer = answers[row]?.[column]}
 					{@const value = guess?.[column] ?? ''}
 					{@const selected = current && column === guess.length}
 					{@const exact = answer === 'x'}
@@ -140,9 +172,9 @@
 	</div>
 
 	<div class="controls">
-		{#if won || data.answers.length >= 6}
-			{#if !won && data.answer}
-				<p>the answer was "{data.answer}"</p>
+		{#if won || answers.length >= maxGuesses}
+			{#if !won && answerRevealed}
+				<p>the answer was "{answerRevealed}"</p>
 			{/if}
 			<button data-key="enter" class="restart selected" formaction="?/restart">
 				{won ? 'you won :)' : `game over :(`} play again?
@@ -228,6 +260,31 @@
 		margin: 0 0.5em 0 0;
 		position: relative;
 		top: -0.05em;
+	}
+
+	.difficulty-buttons {
+		display: flex;
+		gap: 0.5rem;
+		margin-bottom: 1rem;
+	}
+
+	.difficulty-button {
+		padding: 0.5rem 1rem;
+		border: none;
+		border-radius: 4px;
+		background-color: var(--color-bg-1);
+		color: var(--color-text);
+		cursor: pointer;
+		transition: background-color 0.2s;
+	}
+
+	.difficulty-button:hover {
+		background-color: var(--color-bg-2);
+	}
+
+	.difficulty-button.selected {
+		background-color: var(--color-theme-1);
+		color: white;
 	}
 
 	.grid {
