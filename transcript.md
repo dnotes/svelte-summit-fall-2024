@@ -10,11 +10,11 @@ Hi everyone, I'm David Hunt, and I've long been a fan of Gherkin Syntax, or Cucu
 
 I'm going to be using the SvelteKit demo project; hopefully most of us have are familiar with that. And, everything I do today will be available on Github.
 
-So, let's take a look at the Playwright test that ships with the SvelteKit demo project. Here it is on the right, and on the left is the same test in Gherkin.
+So, let's take a look at the Playwright test that ships with the SvelteKit demo project.
 
 ## 1. Comparison with Playwright
 
-Note the keywords, like "Feature" and "Scenario", "Given", "When" and "Then"---these are the things that most people associate with Gherkin Syntax, but as you'll see they're not really that important.
+Here it is on the right, and on the left is the same test in Gherkin. Note the keywords, like "Feature" and "Scenario", "Given", "When" and "Then"---these are the things that most people associate with Gherkin Syntax, but as you'll see they're not really that important.
 
 What I would like you to see is that this file "runs" as a test; if I do "npx vitest --run" you can see the results; there's the Feature, with the Rules and Scenarios listed out.
 
@@ -49,39 +49,56 @@ With these two key points, Gherkin mitigates the two biggest problems in integra
 
 ## 4. Demo 1: Testing the Sverdle game
 
-So, right now we're going to see how Gherkin tries to mitigate these two problems. For this purpose, I've drawn up some functional requirements for the Sverdle game as it exists now, so I'm going to set up a test suite that works in Gherkin, and I'm going to have Claude set one up in Playwright.
+So, let's take a look at how this works in real life by using Gherkin to test the Sverdle game. For this purpose I've drawn up some functional requirements, and we're going to convert them into tests, both in Gherkin and also in Playwright. And in Gherkin, you can usually replace bullet points with "Scenario" or "Rule" to
 
+- Typing letters should work with Javascript enabled
+- Typing backspace erases a letter
+- The guess doesn't change when a 6th letter is typed
+- Typing enter submits the form
+- Clicking letter buttons should work with or without Javascript
+- Clicking back erases a letter
+- The guess doesn't change when a 6th letter is clicked
+- Clicking enter submits the form
+- When the correct word is guessed, a "you won" button should be displayed
+- When the guess limit is reached, a "game over" button should be displayed
+- Entries that are not real words should not be allowed
+- Letters in guesses should be highlighted
+  - exact matches in dark blue
+  - close matches (right letter, wrong position) with a blue border
+  - missing letters slightly greyed
+
+And I was going to do a coding battle where I work in Gherkin and Claude-Dev works in pure Playwright, but we were both so bad at writing tests in Playwright that it was too painful, so...that was quick!
+
+Now let's take a look at these two files, starting with the Gherkin feature on the left, and right away to me this looks very clear and comprehensible. Here are our requirements: _Typing letters should work with Javascript enabled_, and the steps are very clear, _When I type the following keys: t i t l e_, _Then row 1 should be "title"_.
+
+In my consulting work, I don't interact only with developers; I talk with project managers, business analysts, subject matter experts, grandmothers and parents, marketers, all kinds of people, and I'm confident that I could show them a file like this and a picture of our app, and every one of them would be able to participate in a meaningful conversation about what our app is doing and what it should do. If you read this Scenario:
+
+    ```gherkin
+    Scenario: Entries that are not real words should not be allowed
+
+        Given I type the following keys: a s d f g Enter
+        Then row 1 should be current
     ```
-    Here are some functional requirements for the game at /sverdle. Please write integration tests for all of them using Playwright. Put the test files in the /tests folder, as *.test.ts.
 
-        - Typing letters should work with Javascript enabled
-        - Typing backspace erases a letter
-        - The guess doesn't change when a 6th letter is typed
-        - Typing enter submits the form
-        - Clicking letter buttons should work with or without Javascript
-        - Clicking back erases a letter
-        - The guess doesn't change when a 6th letter is clicked
-        - Clicking enter submits the form
-        - When the correct word is guessed, a "you won" button should be displayed
-        - When the guess limit is reached, a "game over" button should be displayed
-        - Entries that are not real words should not be allowed
-        - Letters in guesses should be highlighted
-          - exact matches in dark blue
-          - close matches (i.e. the right letter in the wrong position) with a dark blue border
-          - missing letters slightly greyed
+--everyone here knows what that means. And for the last scenario, just like we might do in Playwright, we can use a visual regression test to make sure that our design requirements are met with each release.
 
-    Only write to the test files or playwright configuration. Your task is finished when each of the functional requirements has tests and each of the tests pass. You can run the tests with `pnpm run test:integration`.
-    ```
+Looking over at the Playwright file: there is _no way_ that I could show this to most of the people on my team, it would just be unreasonable for me to expect it to interest or engage them, and instead we may end up talking in circles or in separate conversations where important ideas about our product are simply lost because there's no way to capture them, like fingers pointing at an imaginary moon.
+
+So this is good, but then in real life there will be bugs and new feature requests, like "people should be able to choose easy, medium or hard mode, with different numbers of guesses". And right away, I can sketch out this new Rule in Gherkin, and this is what people mean when they say "Behavior Driven Development"; because AI might be terrible at writing Playwright tests but it is quite good at parsing natural language -- like the language in our Gherkin tests. So I'm just going to ask Claude ...
+
+  > In the @/src/routes/sverdle/_game.feature file, there are some tests for the new feature that are marked with the todo tag. The new feature is to allow people to choose easy, medium or hard mode. Please change the files @/src/routes/sverdle/+page.server.ts , @/src/routes/sverdle/+page.svelte , and @/src/routes/sverdle/game.ts so that this is possible. Bear in mind you will have to change the structure of the cookie which stores the game state, and you will have to add buttons, which should look reasonably nice.
+
+And we'll let Claude work away over here in the corner, while I show you how to install and configure QuickPickle.
 
 ## 9. Setting up QuickPickle
 
-1.  Install the package, and any others you might use. I'm going to be using a `playwright` package for testing the site, and a `browser` package for testing a component. These haven't got full releases yet but they should work for today.
+1.  Quickpickle makes Gherkin features run in Vitest, while @quickpickle/playwright provides test frameworks for the browser and a bunch of step definitions.
 
     ```
-    pnpm add -D quickpickle @quickpickle/playright @quickpickle/browser
+    pnpm add -D quickpickle @quickpickle/playright
     ```
 
-2.  Create a step definition file; you're going to need it no matter what other modules you use. I'm going to be using playwright for integration testing first, so I'll put this at `tests/playwright.steps.ts`. In any case, this is going to be the support file for all our Gherkin integration tests; but `@quickpickle/playwright` gives us a lot of step definitions and a "world constructor" to use, so I'll import them here.
+2.  You'll _always_ need a step definition file, and you should _always_ name it something.steps.ts or js. In this file you'll import or set up your world variable and import or write your step definitions.
 
     ```ts
     // tests/playwright.steps.ts
@@ -90,7 +107,7 @@ So, right now we're going to see how Gherkin tries to mitigate these two problem
     import '@quickpickle/playwright/outcomes'
     ```
 
-3.  We're going to add QuickPickle to `vite.config.ts`, and make sure that vitest recognizes our .feature files and our setup files. So:
+3.  Add QuickPickle to `vite.config.ts`, and make sure that vitest recognizes our .feature files and our step definitions. If you have multiple environments, you can also use a vitest.workspace.ts file.
 
     ```ts
     import { sveltekit } from '@sveltejs/kit/vite';
@@ -106,7 +123,7 @@ So, right now we're going to see how Gherkin tries to mitigate these two problem
     });
     ```
 
-4.  For our tooling, we need the _official Cucumber plugin_ for VSCode, _not_ the top result for "Gherkin". Then we need to configure the `cucumber.glue` extension setting, which is why we should name our steps.ts files consistently.
+4.  For tooling, do _not_ use the top result for "Gherkin", try the _official Cucumber plugin_ for VSCode. Then configure the `cucumber.glue` setting to get some code completion, which is why we should name our .steps.ts files consistently.
 
     ```json
     "cucumber.glue": [
@@ -115,8 +132,11 @@ So, right now we're going to see how Gherkin tries to mitigate these two problem
     ],
     ```
 
-Now we should be all set up, and we can get started with the demo. I thought I'd demonstrate testing the behavior of the "Sverdle" game, in the format of a coding competition between myself and Claude, where I use Gherkin and Claude uses Playwright.
+## Conclusion
 
+And we can see that Claude is done, and if we remove those todo flags the tests mostly pass, except for a couple of the original tests, so there's stuff to fix but if we go to the site we can see the new functionality and we _know_ it works because _those tests already pass,_ and crucially, none of the actual code has changed, so you never have to ask _who's testing the testers!_
+
+Thank you for letting me talk at this Summit, I hope you got something out of it. I'm David Hunt, QuickPickle lets you run Gherkin features with Vitest, give it a try and I hope to see you in person at the next one. Thanks!
 
 
 
