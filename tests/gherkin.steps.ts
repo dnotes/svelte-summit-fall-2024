@@ -1,10 +1,13 @@
-import '@quickpickle/playwright/world'
-import '@quickpickle/playwright/actions'
-import '@quickpickle/playwright/outcomes'
+import '@quickpickle/playwright/world' // <--- sets up the PlaywrightWorld variable
+import '@quickpickle/playwright/actions' // <--- installs action step definitions (When)
+import '@quickpickle/playwright/outcomes' // <--- installs outcome step definitions (Then)
 
 import type { PlaywrightWorld } from '@quickpickle/playwright'
-import { Given, When, Then } from 'quickpickle'
+import { Given, When, Then } from 'quickpickle' //
 import { expect } from '@playwright/test'
+
+// Write your step definitions in this file too.
+
 import { words } from '../src/routes/sverdle/words.server'
 
 Then('row {int} should be {string}', async (world, row, expected) => {
