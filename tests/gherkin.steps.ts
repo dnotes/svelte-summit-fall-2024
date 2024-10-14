@@ -14,7 +14,7 @@ Then('row {int} should be {string}', async (world, row, expected) => {
 })
 
 Then('row {int} should be current', async(world, row) => {
-  await expect(world.page.locator(`.grid div.row:nth-child(${row * 2}) div.letter.selected`)).toBeVisible()
+  await expect(world.page.locator(`.grid div.row.current:nth-child(${row * 2})`)).toBeVisible()
 })
 
 When('I click the following keys: {}', async (world:PlaywrightWorld, keys) => {

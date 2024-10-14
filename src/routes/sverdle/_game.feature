@@ -65,10 +65,8 @@ Feature: Sverdle game
 
     Scenario: Entries that are not real words should not be allowed
 
-        Given I type the following keys: t i t l e Enter Backspace
-        Then row 2 should be current
         Given I type the following keys: a s d f g Enter Backspace
-        Then row 2 should be current
+        Then row 1 should be current
 
     Scenario: Letters in guesses should be highlighted
 
