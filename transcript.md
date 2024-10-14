@@ -5,15 +5,16 @@ Hi everyone, I'm David Hunt, and I've long been a fan of Gherkin Syntax, or Cucu
 * What Gherkin is
 * The Two Important Points about it
 * The Two Devious Problems of integration testing, and how Gherkin mitigates them
-* How to set up Gherkin with SvelteKit using QuickPickle (my new baby project)
+* How to set up Gherkin with SvelteKit using QuickPickle (my new baby project on NPM)
 * How to use it for testing websites and/or components
-* And, some intriguing ideas for the future
 
-I'm going to be using the SvelteKit demo project, with the "sverdle" game; hopefully most of us have are familiar with that. And, everything I do today will be available on Github.
+I'm going to be using the SvelteKit demo project; hopefully most of us have are familiar with that. And, everything I do today will be available on Github.
+
+So, let's take a look at the Playwright test that ships with the SvelteKit demo project. Here it is on the right, and on the left is the same test in Gherkin.
 
 ## 1. Comparison with Playwright
 
-The SvelteKit demo project ships with a sample Playwright test, so let's see what that would look like in Gherkin syntax, and here it is. Note the keywords, like "Feature" and "Scenario", "Given," "When" and "Then"---these are the things that most people associate with Gherkin Syntax, but as you'll see they're not really that important.
+Note the keywords, like "Feature" and "Scenario", "Given", "When" and "Then"---these are the things that most people associate with Gherkin Syntax, but as you'll see they're not really that important.
 
 What I would like you to see is that this file "runs" as a test; if I do "npx vitest --run" you can see the results; there's the Feature, with the Rules and Scenarios listed out.
 
@@ -115,4 +116,32 @@ So, right now we're going to see how Gherkin tries to mitigate these two problem
     ```
 
 Now we should be all set up, and we can get started with the demo. I thought I'd demonstrate testing the behavior of the "Sverdle" game, in the format of a coding competition between myself and Claude, where I use Gherkin and Claude uses Playwright.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
