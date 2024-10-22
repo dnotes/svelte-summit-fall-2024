@@ -1,3 +1,5 @@
+**Note: this is not really a transcript, but my notes while creating the video.**
+
 # Behavioral Testing with Gherkin (a.k.a. Cucumber) and SvelteKit
 
 Hi everyone, I'm David Hunt, and I've long been a fan of Gherkin Syntax, or Cucumber as it's sometimes known, for behaviroal testing. Today I'd like to show you how to get started with it in the context of Svelte and SvelteKit. Hopefully, ten minutes from now, you'll have a better understanding of:
