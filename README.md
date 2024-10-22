@@ -1,178 +1,68 @@
-This Svelte Demo site is being created for the Svelte Summit Fall 2024.
-My talk is on:
+This Svelte Demo site was created for the Svelte Summit Fall 2024.
 
-## Behavioral Testing with Gherkin (a.k.a. Cucumber) and SvelteKit
+In this talk, I compared the process of writing tests in Gherkin vs. writing tests in pure playwright. **Note: Some of what I demonstrated is in a pull request, not the main branch.** See "Writing a feature request in Gherkin" below.
 
-This presentation will explain benefits, methods, tools, pitfalls and
-workflows for using Gherkin for behavioral tests with SvelteKit projects.
-The audience is very familiar with SvelteKit, but not as much with Gherkin
-and behavioral testing. The outline is roughly as follows:
+Here are some key moments of the talk for developers:
 
-1.  Brief overview of the Gherkin Syntax
+### Comparing [_FrontPage.feature] (Gherkin) vs. [test.ts] (playwright) [19:01]
 
-    To help you explore Gherkin, I'm going to use the default SvelteKit demo app,
-    and demonstrate how to test the Sverdle game and the Counter component.
+The Svelte Demo app ships with one Playwright test in [test.ts]. I re-created that test in Gherkin at [_FrontPage.feature]. I later extended that Gherkin test to make sure the site works without Javsacript running.
 
-    But first, here is a side-by-side view of the default integration tests from
-    this demo app, in Gherkin and in Playwright
+### Running feature files with Vitest [19:22]
 
-    1.  showing a real Gherkin Scenario
-    2.  running the Gherkin Scenario
-    3.  showing the step definitions
-    4.  writing a step definition with a "nojs" tag
-    5.  verifying that the step actually tests what it should test
+Files written in Gherkin run as tests with Vitest, and you can see that happening. This works because every step in a .feature file corresponds to a "step definition" in a test support file. Those step definitions are written in Playwright (or another testing framework) and included in your tests through the "setupFiles" configuration for Vitest, probably in [vite.config.ts].
 
-2.  the two important points of behavioral testing with Gherkin Syntax
-    1.  write tests in natural language (e.g. English)
-    2.  write reusable discrete "step definitions" with minimal code
+In this case, I'm using the step definitions from [@quickpickle/playwright/actions], an experimental library of pre-made Gherkin step definitions for testing behavior through UI elements. Full disclosure: Testing based on the UI is often considered a beginner mistake in the behavioral testing world, but I think it could have some utility and I'm trying it out.
 
-3.  Comparing Gherkin with hard-coded tests
+### Starting a Gherkin Feature [22:34]
 
-    Gherkin mitigates the two biggest problems in integration testing, which I call
-    "fingers pointing at an imaginary moon" and "who tests the testers"
+I wrote the Gherkin tests in the [_game.feature] file.
 
-    1.  Problem 1: "fingers pointing at an imaginary moon":
-        1.  from Zen Buddhism: words are like "a finger pointing at the moon";
-            they cannot hold the essence of an idea, but are mere tools that we use to
-            approach a truth that is inherently greater
-        2.  your functional requirements are like this, except the moon doesn't exist yet
-        3.  it is _really difficult_ to come to a common understanding of its essence
-        4.  Gherkin at least gives you a common language that everyone can use
-            to describe and verify the most important aspects of your application
-        5.  and to demonstrate the importance of that common language, imagine
-            if I had named this problem "maihao tohu ki te marama pohewa"
-    2.  the "who tests the testers" problem:
-        1.  assuming testers understand what you want perfectly
-        2.  any time code is written or modified, it should be tested
-        3.  test code should change as little as possible
-        4.  functionality changes all the $°*&!n@ time
-        5.  if your integration tests are changing, you should test that code...
-        6.  you have two apps, your original app and the one you use to test it
+### Testing the "Sverdle" game: Gherkin vs. Playwright [23:25]
 
-4.  Setting up Gherkin with Vitest and QuickPickle
-    1.  js support for Gherkin has been very poor for years
-        * cucumber-js is painfully outdated, but you can certainly use it
-        * most (all?) other js libraries **completely** miss the point of Gherkin
-          * [vitest-gherkin] does not use natural language or step definitions
-          * [@amiceli/vitest-cucumber] requires you to write code for each step
-          * [Sam Ziegler] had the right idea but re-implemented the Gherkin parser
-            in a way that didn't work and made some other changes I didn't like
-    2.  I made [quickpickle] last weekend, try installing that
-    3.  create a step definition file
-        * use a naming convention, I'm recommending `*.steps.{ts,js,mjs,cjs}`,
-          so that IDE plugins can do syntax highlighting
-        * import other modules' step files at the top of yours, e.g.
-          [@quickpickle/playwright] if you're testing a website or app
-    4.  configuring quickpickle with vite.config.ts
-        * plugin: import `quickpickle` and add to `plugins`
-        * .feature files: glob include in `test.include`
-        * step definitions: individual includes in `test.setupFiles`
-    5.  configuring vscode
-        * get the *official Cucumber extension*, not the top result for "Gherkin"
-        * configure the `cucumber.glue` extension setting for your step definitions
+I wrote the Gherkin tests in the [_game.feature] file. These tests use the step definitions from [gherkin.steps.ts], which I also wrote.
 
-### Demonstrations
+I tried to have Claude 3.5 Sonnet write some tests in pure Playwright at [sverdle.test.ts], but it didn't work very well. I had to spend a bunch of time debugging so I only fixed a few of them, and the rest still fail because the tests are bad. Nonetheless, it was useful to have some sort of comparison.
 
-5.  Demo 1: testing the behavior of the "sverdle" game
+### Writing a feature request in Gherkin [25:29]
 
-    I'm going to have a coding competition against Anthropic Claude.
-    I'll be writing Gherkin tests, and Claude can write Playwright tests.
+I wanted to imagine adding some new functionality, and how that works in Gherkin. The functionality I chose was [adding easy, medium and hard mode]. So, I wrote a new Rule and Scenarios and [added them to _game.feature].
 
-    1.  Functional requirements
-        - Typing letters should work with Javascript enabled
-        - Typing backspace erases a letter
-        - The guess doesn't change when a 6th letter is typed
-        - Typing enter submits the form
-        - Clicking letter buttons should work with or without Javascript
-        - Clicking back erases a letter
-        - The guess doesn't change when a 6th letter is clicked
-        - Clicking enter submits the form
-        - When the correct word is guessed, a "you won" button should be displayed
-        - When the guess limit is reached, a "game over" button should be displayed
-        - Entries that are not real words should not be allowed
-        - Letters in guesses should be highlighted
-          - exact matches in dark blue
-          - close matches (i.e. the right letter in the wrong position) with a dark blue border
-          - missing letters slightly greyed
+Then, based on those Gherkin tests, I asked Claude to make the changes necessary so that they passed, and the results are in [https://github.com/dnotes/svelte-summit-fall-2024/pull/1].
 
-    2. Configuration
-        - vite.config.ts
-          - setting QuickPickle "explodeTags"
-          - making sure our step definition file is in the "setupFiles" setting
-        - the step definition file
-          - imports from '@quickpickle/playwright'
-        - creating a feature file, _game.feature
+### Setting up QuickPickle [26:28]
 
-    2. (demo 1 coding)
+I demonstrate how to setup QuickPickle to run Gherkin tests in Vitest:
 
-6.  Demo 2: testing the behavior of the `Counter.svelte` component
-
-    Usually you should NOT use Gherkin for unit testing, but for components
-    it might make sense, because components units that encapsulate behavior.
-    ---and, it's pretty easy.
-
-    1.  Functional requirements
-        - Clicking + should increment the count
-        - Clicking - should decrement the count
-
-    2.  Configuration
-        - move vitest configuration to vitest.workspace.ts
-          - integration environment, for the page testing
-          - component environment, for components
-        - create the new step file
-          - import from [@quickpickle/browser]
-
-    3. (demo 2 coding)
-
-### The Solution
-
-7.  Look at the "code", and think about our problems
-    1.  "fingers pointing at an imaginary moon":
-        - with Gherkin features, everyone on the team has a common language to
-          describe what the application does; they can all understand the tests
-          and help to write them
-        - with the playwright files, this would be an unreasonable expectation
-    2. "who tests the testers":
-        - with Gherkin, the requirements can change completely but the "code"
-          ---i.e. the corpus of step definitions---changes very little
-        - with hard-coded tests, almost all of the test code changes whenever
-          there is a change in the application, meaning:
-          - you need a dedicated developer coding tests based on requirements
-          - integration testing will quickly become unmanageable
-
-### HOT TAKE: One of these methods is better than the other!
-
-8.  Conclusion
-
-    Every web project should be using Gherkin syntax _with appropriate tooling_
-    for 90% of its integration testing
-
-    1.  Remember the most important points:
-      - write tests in natural language
-      - write minimal code for step definitions
-    2.  Remember the problems those points solve:
-      - fingers pointing at an imaginary moon
-      - who tests the testers
-    3.  Don't settle for anything less
-
-9.  Possibilities
-    - Libraries of step definitions like [@quickpickle/playwright] and
-      [@quickpickle/browser] can provide a shared lexicon in any language for the most
-      common Gherkin steps in all web projects, so you might not need to
-      write any code at all!
-    - How about a [Svelte component that reads your step definitions]?
-      Put it on your project's documentation site and let your users
-      write tests **for** you with every bug report or feature request!
-    - Put those tests into your issues, and have each one of them get
-      converted automatically into a test suite that verifies the
-      functionality before you even look at it!
-    - What else is really good at working with natural language?
-      Hook up an n8n workflow to let AI fulfil those behavioral
-      requirements within your issue workflow!
+* installing [quickpickle] and [@quickpickle/playwright]
+* writing a [step definition file]
+* configuring [vite.config.ts] to use QuickPickle and find your .feature files and setupFiles
+* installing and configuring the [official cucumber plugin] for VSCode
 
 
+[test.ts]: https://github.com/dnotes/svelte-summit-fall-2024/blob/main/tests/test.ts
+[_FrontPage.feature]: https://github.com/dnotes/svelte-summit-fall-2024/blob/main/src/routes/_FrontPage.feature
+[_game.feature]: https://github.com/dnotes/svelte-summit-fall-2024/blob/main/src/routes/sverdle/_game.feature
+[step definition file]: https://github.com/dnotes/svelte-summit-fall-2024/blob/main/tests/gherkin.steps.ts
+[gherkin.steps.ts]: https://github.com/dnotes/svelte-summit-fall-2024/blob/main/tests/gherkin.steps.ts
+[.steps.ts file]: https://github.com/dnotes/svelte-summit-fall-2024/blob/main/tests/gherkin.steps.ts
+[.steps.ts]: https://github.com/dnotes/svelte-summit-fall-2024/blob/main/tests/gherkin.steps.ts
+[sverdle.test.ts]: https://github.com/dnotes/svelte-summit-fall-2024/blob/main/tests/sverdle.test.ts
+[vite.config.ts]: https://github.com/dnotes/svelte-summit-fall-2024/blob/main/vite.config.ts
 
+[adding easy, medium and hard mode]: https://github.com/dnotes/svelte-summit-fall-2024/pull/1
+[added them to _game.feature]: https://github.com/dnotes/svelte-summit-fall-2024/pull/1/files
 
+[official cucumber plugin]: https://marketplace.visualstudio.com/items?itemName=CucumberOpen.cucumber-official
+
+[@quickpickle/playwright/actions]: https://github.com/dnotes/quickpickle/blob/main/packages/playwright/src/actions.steps.ts
+
+[19:01]: https://www.youtube.com/live/fAPFsRP-mbc?t=1141
+[19:22]: https://www.youtube.com/live/fAPFsRP-mbc?t=1162
+[22:34]: https://www.youtube.com/live/fAPFsRP-mbc?t=1354
+[23:25]: https://www.youtube.com/live/fAPFsRP-mbc?t=1405
+[25:29]: https://www.youtube.com/live/fAPFsRP-mbc?t=1529
+[26:28]: https://www.youtube.com/live/fAPFsRP-mbc?t=1588
 
 [quickpickle]: [https://github.com/dnotes/quickpickle]
 [@quickpickle/playwright]: [https://github.com/dnotes/quickpickle/tree/main/packages/playwright]
