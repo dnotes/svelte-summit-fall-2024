@@ -78,3 +78,36 @@ Feature: Sverdle game
         When I type the following keys: t i t l e Enter
         Then the screenshot "sverdle" should match
 
+    Rule: People should be able to choose easy, medium or hard mode
+
+        Easy mode allows 8 guesses
+        Medium mode allows 6 guesses, and is the default
+        Hard mode allows 5 guesses
+
+        Scenario: The medium mode is the default
+            Then I should see a "button" with the text "medium"
+
+        Scenario: Game in easy mode
+            Given a new game with the word "enter"
+            Given I press the "easy" button
+            When I type the following keys: t i t l e Enter
+            And I type the following keys: t i t l e Enter
+            And I type the following keys: t i t l e Enter
+            And I type the following keys: t i t l e Enter
+            And I type the following keys: t i t l e Enter
+            And I type the following keys: t i t l e Enter
+            Then I should not see a "button" with the text "game over"
+            When I type the following keys: t i t l e Enter
+            Then I should not see a "button" with the text "game over"
+            When I type the following keys: t i t l e Enter
+            Then I should see a "button" with the text "game over"
+
+        Scenario: Game in hard mode
+            Given a new game with the word "enter"
+            Given I press the "hard" button
+            When I type the following keys: t i t l e Enter
+            And I type the following keys: t i t l e Enter
+            And I type the following keys: t i t l e Enter
+            And I type the following keys: t i t l e Enter
+            And I type the following keys: t i t l e Enter
+            Then I should see a "button" with the text "game over"

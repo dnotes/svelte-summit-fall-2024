@@ -1,34 +1,20 @@
 import { fail } from '@sveltejs/kit';
-import { Game } from './game';
+import { Game, type Difficulty } from './game';
 import type { PageServerLoad, Actions } from './$types';
 
 export const load = (({ cookies }) => {
 	const game = new Game(cookies.get('sverdle'));
 
 	return {
-		/**
-		 * The player's guessed words so far
-		 */
 		guesses: game.guesses,
-
-		/**
-		 * An array of strings like '__x_c' corresponding to the guesses, where 'x' means
-		 * an exact match, and 'c' means a close match (right letter, wrong place)
-		 */
 		answers: game.answers,
-
-		/**
-		 * The correct answer, revealed if the game is over
-		 */
-		answer: game.answers.length >= 6 ? game.answer : null
+		maxGuesses: game.maxGuesses,
+		answer: game.gameOver ? game.answer : null,
+		difficulty: game.difficulty
 	};
 }) satisfies PageServerLoad;
 
 export const actions = {
-	/**
-	 * Modify game state in reaction to a keypress. If client-side JavaScript
-	 * is available, this will happen in the browser instead of here
-	 */
 	update: async ({ request, cookies }) => {
 		const game = new Game(cookies.get('sverdle'));
 
@@ -38,18 +24,14 @@ export const actions = {
 		const i = game.answers.length;
 
 		if (key === 'backspace') {
-			game.guesses[i] = game.guesses[i].slice(0, -1);
+			game.guesses[i] = game.guesses[i]?.slice(0, -1) ?? '';
 		} else {
-			game.guesses[i] += key;
+			game.guesses[i] = (game.guesses[i] ?? '') + key;
 		}
 
 		cookies.set('sverdle', game.toString(), { path: '/' });
 	},
 
-	/**
-	 * Modify game state in reaction to a guessed word. This logic always runs on
-	 * the server, so that people can't cheat by peeking at the JavaScript
-	 */
 	enter: async ({ request, cookies }) => {
 		const game = new Game(cookies.get('sverdle'));
 
@@ -65,5 +47,16 @@ export const actions = {
 
 	restart: async ({ cookies }) => {
 		cookies.delete('sverdle', { path: '/' });
+	},
+
+	setDifficulty: async ({ request, cookies }) => {
+		const game = new Game(cookies.get('sverdle'));
+
+		const data = await request.formData();
+		const difficulty = data.get('difficulty') as Difficulty;
+
+		game.setDifficulty(difficulty);
+
+		cookies.set('sverdle', game.toString(), { path: '/' });
 	}
 } satisfies Actions;

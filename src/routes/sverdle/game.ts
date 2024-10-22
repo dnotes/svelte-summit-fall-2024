@@ -1,25 +1,30 @@
 import { words, allowed } from './words.server';
 
+export type Difficulty = 'easy' | 'medium' | 'hard';
+
 export class Game {
 	index: number;
 	guesses: string[];
 	answers: string[];
 	answer: string;
+	difficulty: Difficulty;
 
 	/**
 	 * Create a game object from the player's cookie, or initialise a new game
 	 */
 	constructor(serialized: string | undefined = undefined) {
 		if (serialized) {
-			const [index, guesses, answers] = serialized.split('-');
+			const [index, guesses, answers, difficulty] = serialized.split('-');
 
 			this.index = +index;
 			this.guesses = guesses ? guesses.split(' ') : [];
 			this.answers = answers ? answers.split(' ') : [];
+			this.difficulty = (difficulty as Difficulty) || 'medium';
 		} else {
 			this.index = Math.floor(Math.random() * words.length);
-			this.guesses = ['', '', '', '', '', ''];
+			this.guesses = [];
 			this.answers = [];
+			this.difficulty = 'medium';
 		}
 
 		this.answer = words[this.index];
@@ -35,7 +40,7 @@ export class Game {
 
 		if (!valid) return false;
 
-		this.guesses[this.answers.length] = word;
+		this.guesses.push(word);
 
 		const available = Array.from(this.answer);
 		const answer = Array(5).fill('_');
@@ -67,9 +72,42 @@ export class Game {
 	}
 
 	/**
+	 * Get the maximum number of guesses based on the difficulty
+	 */
+	get maxGuesses() {
+		switch (this.difficulty) {
+			case 'easy':
+				return 8;
+			case 'hard':
+				return 5;
+			default:
+				return 6;
+		}
+	}
+
+	/**
+	 * Check if the game is over
+	 */
+	get gameOver() {
+		return this.answers.length >= this.maxGuesses || this.answers.at(-1) === 'xxxxx';
+	}
+
+	/**
 	 * Serialize game state so it can be set as a cookie
 	 */
 	toString() {
-		return `${this.index}-${this.guesses.join(' ')}-${this.answers.join(' ')}`;
+		return `${this.index}-${this.guesses.join(' ')}-${this.answers.join(' ')}-${this.difficulty}`;
+	}
+
+	/**
+	 * Change the difficulty of the game
+	 */
+	setDifficulty(difficulty: Difficulty) {
+		this.difficulty = difficulty;
+		// Reset the game when changing difficulty
+		this.guesses = [];
+		this.answers = [];
+		this.index = Math.floor(Math.random() * words.length);
+		this.answer = words[this.index];
 	}
 }
